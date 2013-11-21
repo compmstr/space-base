@@ -1,0 +1,34 @@
+Damage:
+  Damagable component -- has HP
+  DamageReduction component -- Has map of <type> -> [[<id> <amt>]...]
+    <id> is entity that added damage reduction (main entity id is base reduction)
+  Damage System looks at base damage being done, looks for DamageReduction
+    component to modify that damage
+
+Locomotion:
+  Terrain tiles have different speed modifiers, that can be modified
+    by locomotion components
+  Locomotion Component -- has list of movement modes
+    Movement modes: has base speed
+	  Walking - default terrain modifier 1x
+	  Crawling - default terrain modifier 2x
+	  Flying - default windspeed modifier 1x
+	  ...
+
+Tasks:
+  Each entity can have component tasks (hunger, fatigue, etc)
+  Each entity can have a faction, which can filter tasks
+  Both priority and distance affect selection of tasks
+    (ex, lower priority task that is much closer than higher priority
+	  will get done first)
+  Can mark tasks with urgent levels (default in middle) to get them done faster
+
+Skills:
+  Skills can have time/damage/accuracy modifiers for different actions
+    Will need to tie skills in with a lot of systems
+  
+Equipment:
+  Can modifier different actions/components
+    ex: Armor adding/removing DamageReduction when equipped/unequipped
+  Provide different methods of performing tasks
+    ex: Laser mining vs explosive mining
