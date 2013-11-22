@@ -2,7 +2,8 @@
   (import
    [java.awt Dimension Color]
    [javax.swing JFrame JPanel Timer]
-   [java.awt.event ActionListener ActionEvent]))
+   [javax.swing.event MouseInputAdapter]
+   [java.awt.event ActionListener ActionEvent MouseEvent]))
 
 (defn add-vec
   [[x1 y1] [x2 y2]]
@@ -30,7 +31,10 @@
 
 (defn guy [loc vel]
   {:loc loc :vel vel})
-(def guys (atom [(guy [5 5] [0 0]) (guy [100 100] [0 0])]))
+(def guys (atom [(guy [5 5] [0 0])
+                 (guy [100 100] [0 0])
+                 (guy [200 5] [0 0])
+                 (guy [200 20] [0 0])]))
 (def target (atom [400 300]))
 
 (def ^:const guy-diam 20)
@@ -64,10 +68,10 @@
 
 (def rot-speed (* 2 Math/PI))
 (def ^:const max-speed 100)
-(def ^:const accel 50)
+(def ^:const accel 200)
 
 (defn seek
-  [d-time tgt {loc :loc vel :vel :as cur-guy}]
+  [tgt d-time {loc :loc vel :vel :as cur-guy}]
   (let [tgt-vec (vec-norm (sub-vec tgt loc))
         accel-vec (mult-vec tgt-vec (* accel d-time))
         acceled-vel (add-vec accel-vec vel)
@@ -78,7 +82,7 @@
   (defn update-guy
     [d-time {[x y] :loc vel :vel}]
     (let [[vX vY] vel]
-      (seek d-time @target
+      (seek @target d-time 
             (guy [(+ x (* vX d-time))
                   (+ y (* vY d-time))]
                  vel))))
@@ -108,11 +112,18 @@
       (.addActionListener listener)
       (.start))))
                        
+(defn target-updater
+  []
+  (proxy [MouseInputAdapter] []
+    (mousePressed [e]
+      (when (= MouseEvent/BUTTON1 (.getButton e))
+        (reset! target [(.getX e) (.getY e)])))))
 
 (defn runTest
   []
   (let [panel (anim-panel)
         frame (JFrame.)]
+    (.addMouseListener panel (target-updater))
     (doto frame
       (.setContentPane panel)
       (.pack)
