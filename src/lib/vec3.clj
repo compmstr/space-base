@@ -35,7 +35,7 @@
 
 (defn v3-man-dist
   [^Vec3 v1 ^Vec3 v2]
-  (let [v-sub (v- v1 v2)]
+  (let [v-sub (v3- v1 v2)]
     (+ (Math/abs (.x v-sub))
        (Math/abs (.y v-sub))
        (Math/abs (.z v-sub)))))
@@ -43,6 +43,7 @@
   [^Vec3 v1 ^Vec3 v2]
   (v3-dot (v3- v1 v2)))
 (defn v3-dist
+  [^Vec3 v1 ^Vec3 v2]
   (v3-mag (v3- v1 v2)))
 
 ;;Test code
