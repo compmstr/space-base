@@ -45,7 +45,8 @@
 (defn draw-guys
   [g]
   (doseq [{[x y] :loc} @guys]
-    (.fillArc g (- x guy-radius) (- y guy-radius) guy-diam guy-diam 0 360)))
+    ;;(.fillArc g (- x guy-radius) (- y guy-radius) guy-diam guy-diam 0 360)))
+    (.fillRect g (- x guy-radius) (- y guy-radius) guy-diam guy-diam)))
 
 (defn draw-target
   [g]
