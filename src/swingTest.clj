@@ -79,9 +79,9 @@
   [tgt d-time {loc :loc vel :vel :as cur-guy}]
   (let [tgt-vec (vec-norm (sub-vec tgt loc))
         accel-vec (mult-vec tgt-vec (* accel d-time))
-        acceled-vel (add-vec accel-vec vel)
-        new-speed (min max-speed (vec-mag acceled-vel))
-        new-vel (mult-vec (vec-norm acceled-vel) new-speed)]
+        new-vel (add-vec accel-vec vel)
+        new-speed (min max-speed (vec-mag new-vel))
+        new-vel (mult-vec (vec-norm new-vel) new-speed)]
     (guy loc new-vel)))
 (let [last-update (atom nil)]
   (defn update-guy
