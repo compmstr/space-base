@@ -1,6 +1,8 @@
 (ns swingTest
+  (use lib.vec3)
   (import
-   [java.awt Dimension Color]
+   lib.vec3.Vec3
+   [java.awt Dimension Color Toolkit]
    [javax.swing JFrame JPanel Timer]
    [javax.swing.event MouseInputAdapter]
    [java.awt.event ActionListener ActionEvent MouseEvent]))
@@ -57,11 +59,13 @@
   []
   (let [panel (proxy [JPanel] []
                 (paintComponent [g]
+                  (.sync (java.awt.Toolkit/getDefaultToolkit))
                   (doto g
                     (.clearRect 0 0 800 600)
                     (draw-guys)
                     (draw-target))))]
     (doto panel
+      (.setDoubleBuffered true)
       (.setPreferredSize (Dimension. 800 600))
       (.setOpaque true))
     panel))
@@ -97,7 +101,7 @@
       (reset! last-update (System/currentTimeMillis)))))
 
 (def stop-anim (atom nil))
-(defn animate
+(defn animate-timer
   [component]
   (let [fps 30
         delay (/ (float 1000) fps)
@@ -111,6 +115,19 @@
     (doto timer
       (.addActionListener listener)
       (.start))))
+
+(defn animate-thread
+  [component]
+  (let [fps 30
+        delay (/ (float 1000) fps)
+        f (fn []
+            (while (not @stop-anim)
+              (update-guys)
+              (.repaint component)
+              (Thread/sleep delay)))]
+    (.start (Thread. f))))
+
+(def animate animate-thread)
                        
 (defn target-updater
   []
