@@ -7,8 +7,8 @@
 (def ^:const map-size 8)
 (def tile-cost
   {0 1
-   1 1.5
-   2 3
+   1 2
+   2 4
    9 8})
 (def tile-glyph
   {0 \.
@@ -47,8 +47,8 @@
          locs)))
 
 ;;nav-node keys: -- :prev :loc :cost
-(def est-cost vec3/v3-man-dist)
-;;(def est-cost vec3/v3-dist)
+;;(def est-cost vec3/v3-man-dist)
+(def est-cost vec3/v3-dist)
 (defn total-cost
   [tgt n]
   (+ (est-cost tgt (:loc n))
@@ -58,8 +58,9 @@
   (if prev
     (let [new-loc (:loc loc)]
       {:loc new-loc
-       :cost (+ (:cost loc)
-                (:cost prev))
+       :cost (+ (:cost prev)
+                (* (vec3/v3-dist new-loc (:loc prev))
+                   (:cost loc)))
        :prev prev})
     {:loc (:loc loc)
      :cost 0
@@ -74,22 +75,18 @@
       (recur (:prev cur)
              (conj acc (:loc cur))))))
 
+(defn int-vec3
+  [v]
+  [(int (.x v))
+   (int (.y v))
+   (int (.z v))])
+(def a*-steps (atom []))
 (defn navigate-a*
   [m start tgt]
+  (reset! a*-steps [])
   (loop [to-check [(nav-node nil m tgt {:loc start})]
          visited []]
-    (comment
-    (println "================")
-    (println (:loc (first to-check))
-             (:cost (first to-check))
-             (total-cost tgt (first to-check)))
-    ;(println 'to-check)
-    ;(clojure.pprint/pprint (take 3 to-check))
-    ;(println 'visited)
-    ;(clojure.pprint/pprint visited)
-    (println "================")
-    ;(Thread/sleep 1000)
-    )
+    (swap! a*-steps conj (first to-check))
     (let [cur (first to-check)]
       (if (= (:loc cur) tgt)
         (build-path cur)
@@ -104,3 +101,13 @@
               (recur new-to-check
                      (conj visited cur)))))))))
           
+
+(def test-tgt (Vec3. 7 1 0))
+(def test-path (navigate-a* test-map (Vec3. 0 0 0) test-tgt))
+(defn print-steps
+  []
+  (map (juxt
+        (comp int-vec3 :loc)
+        (comp (partial format "%.2f") (partial total-cost test-tgt))
+             )
+       @a*-steps))
