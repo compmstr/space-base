@@ -7,6 +7,7 @@
            (= (.x other) (.x self))
            (= (.y other) (.y self))
            (= (.z other) (.z self))))
+    (hashCode [self] (int (+ (.x self) (.y self) (.z self))))
     (toString [self] (str "(" x "," y "," z ")")))
 
 (defn v3+ [^Vec3 v1 ^Vec3 v2]
