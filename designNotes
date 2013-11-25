@@ -1,3 +1,12 @@
+TODO:
+  Make each component's map be it's own ref inside the main
+	  components ref. (Maybe not needed)
+	  -This is so that you won't have every system stopping the other transactions
+  Also, atoms vs refs (since each set of components doesn't *need* to be consistent
+	  with each other (they can be off by a frame/tick with little to no issue)
+		and atoms are faster than refs
+		... possibly use an agent (quick test with 5000 updates took <100 ms)
+
 Damage:
   Damagable component -- has HP
   DamageReduction component -- Has map of <type> -> [[<id> <amt>]...]
