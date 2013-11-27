@@ -140,6 +140,10 @@
   [comp id]
   (get @(@components comp) id))
 
+(defn update-comp
+  [comp id f & args]
+  (send (@components comp) #(apply update-in % [id] f args)))
+
 ;; Test code
 
 (comment
