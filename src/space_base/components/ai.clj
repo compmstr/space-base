@@ -11,6 +11,9 @@
 ;;  and :done? to check if a task is done
 ;;TODO: how to xfer data to next subtask
 ;;  ex: navigate-to needs to pass path to go-to
+;;When creating a task, it can have a data atom to
+;;  use to transfer data between steps, each task
+;;  type will use this data differently
 
 (defn gen-ai
   []
