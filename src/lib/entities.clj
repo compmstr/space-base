@@ -7,7 +7,7 @@
 ;; :deps is optional, and is a vector of other component types that are required for this entity
 ;;  {:fields [(:name|{:name ... <:default ...>})]
 ;;    <:deps [:other-component ...]>}
-(def component-types (ref {}))
+(def component-types (atom {}))
 (defn valid-component? [[k v]]
   (letfn [(valid-field [f]
             (or (keyword? f)
@@ -26,13 +26,11 @@
      (component-type [c-type c-data]))
   ([c]
      (if (valid-component? c)
-       (dosync
-        (alter component-types
-               merge c))
+       (swap! component-types merge c)
        (println "Error: Component:" c "is invalid"))))
 ;;Entity Types are a map of type names to a set of needed components as maps (can be empty maps
 ;;  if all fields have defaults)
-(def entity-types (ref {}))
+(def entity-types (atom {}))
 
 (defn component-needed-fields [comp-type]
   (loop [fields (:fields (@component-types comp-type))
@@ -70,11 +68,12 @@
 
 (defn create-entity-type [name ent]
   (when (valid-entity? ent)
-    (dosync (alter entity-types assoc name ent))))
+    (swap! entity-types assoc name ent)))
 
 ;;Components is {:component-type -> {id -> component}}
+;;  Components map is atom, each component type map is an agent
 ;;  Each component ends up with it's own id
-(def components (ref {}))
+(def components (atom {}))
 
 (defn component-type>defaults
   [type]
@@ -88,10 +87,15 @@
 
 (defn create-component
   [id [type vals]]
-  (dosync
-   (alter components
-          assoc-in [type id]
-                    (component-type>instance id type vals))))
+  (swap! components
+         (fn [comps]
+           (let [new-comp (component-type>instance id type vals)]
+             (if-let [type-agent (type comps)]
+               (do
+                 (send type-agent assoc id new-comp)
+                 comps)
+               (assoc comps type
+                      (agent {id new-comp})))))))
 
 (defn new-id [] (. clojure.lang.RT (nextID)))
 
@@ -111,22 +115,20 @@
   <component-type> components"
   [component-type fn-key]
   (fn []
-    (doseq [component (vals (component-type @components))]
+    (doseq [component (vals @(component-type @components))]
       ((component fn-key) (:id component)))))
 
 (defn remove-entity
   [id]
-  (dosync
-   (doseq [comp-type (keys @components)]
-     (alter components
-            update-in [comp-type] dissoc id))))
+  (doseq [comp-type (vals @components)]
+    (send comp-type dissoc id)))
 
 (defn entity-by-id
   [id]
   (let [comps @components
         entity (->>
                 (keys comps)
-                (map (fn [k] [k (get-in comps [k id])]))
+                (map (fn [k] [k (get @(comps k) id)]))
                 (filter second)
                 (mapcat identity)
                 (apply hash-map))]
@@ -134,7 +136,13 @@
       nil
       entity)))
 
+(defn get-comp
+  [comp id]
+  (get @(@components comp) id))
+
 ;; Test code
+
+(comment
 
 (def test-components
   [[:walking {:fields [{:name :speed :default 5}]}]
@@ -172,9 +180,6 @@
 ;;END --- Example components with systems
 
 
-(defn get-comp
-  [comp id]
-  (get-in @components [comp id]))
 (def get-position (partial get-comp :position))
 
 (require 'ansi)
@@ -186,17 +191,22 @@
 
 (doall (map component-type test-components))
 
+(defn drawer
+  [name id]
+  (let [[x y] (:loc (get-position id))]
+    (println name (str "(" id ")") "@" x y)))
+
 (create-entity-type :player
                     {:walking {}
                      :player {:inputmap {:left #(println "player with id:" % "go left")}}
                      :damagable {:hp 10 :max-hp 10}
-                     :drawable {:drawfn (fn [x] (println "player:" x))}
+                     :drawable {:drawfn (partial drawer "player")}
                      :position {:loc [4 5] :facing 0.0}})
 (create-entity-type :mob1
                     {:walking {}
                      :ai {:updatefn (fn [id] (println "Do-AI for id:" id "at:" (:loc (get-position id))))}
                      :damagable {:hp 5 :max-hp 5}
-                     :drawable {:drawfn (fn [x] (println "mob1:" x))}
+                     :drawable {:drawfn (partial drawer "mob1")}
                      :position {:loc [10 10] :facing 0.0}})
 
 (def player-id (create-entity :player))
@@ -207,3 +217,5 @@
 
 (defn reload-ents [] (use 'lib.entities :reload-all)
   (require '[clojure.set :as set]))
+
+) ;;comment end
