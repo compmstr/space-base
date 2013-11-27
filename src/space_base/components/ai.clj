@@ -14,6 +14,12 @@
 ;;When creating a task, it can have a data atom to
 ;;  use to transfer data between steps, each task
 ;;  type will use this data differently
+;;  The data atom will be passed to it as a parameter
+;;    and it will fill it or not based on the task
+;;Tasks will need to have some sort of ID to make sure that
+;;  multiple entities don't have the same task
+;;When creating an AI -- need to pass it a map of task type -> priority
+;;  that it can return based on input to update it
 
 (defn gen-ai
   []
