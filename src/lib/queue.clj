@@ -8,7 +8,7 @@
 
 (defn enqueue
   [q & elts]
-  (conj q elts))
+  (if elts (apply conj q elts) q))
 (defn dequeue
   [q]
   (pop q))
