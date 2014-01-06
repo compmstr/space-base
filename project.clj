@@ -1,7 +1,7 @@
 (defproject space-base "0.1.0-SNAPSHOT"
   :description "FIXME: write description"
   :url "http://example.com/FIXME"
-  :soruce-path "src"
+  :source-path "src"
   :main space-base.core
   :repositories [["sonatype"
                   "https://oss.sonatype.org/content/repositories/snapshots/"]]
